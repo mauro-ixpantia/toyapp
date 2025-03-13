@@ -8,7 +8,7 @@ steps:
         # Add your commands here that require the GITHUB_TOKEN,
         # for example, interacting with GitHub APIs.
         Rscript -e 'install.packages("pak")'
-        Rscript -e 'pak::pak("maurolepore/private")'
+        Rscript -e 'pak::pak("maurolepore/toyhiprivate")'
     secretEnv: ['GITHUB_TOKEN']
 availableSecrets:
   secretManager:
