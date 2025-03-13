@@ -9,7 +9,11 @@ server <- function(input, output, session) {
   output$hi <- renderText({
     switch(input$package,
       "public" = toyhi::hi("I'm a public package"),
-      "private" = toyhiprivate::hi("I'm a private package")
+      "private" = if (requireNamespace("private", quietly = TRUE)) {
+         toyhiprivate::hi("I'm a private package")
+       } else {
+         "Sorry the private package isn't installed"
+       }
     )
   })
 }
