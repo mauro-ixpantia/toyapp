@@ -14,7 +14,6 @@ availableSecrets:
   secretManager:
     - versionName: 'projects/$PROJECT_ID/secrets/GITHUB_TOKEN/versions/latest'
       env: 'GITHUB_TOKEN'
-
   - name: gcr.io/cloud-builders/docker
     args:
       - build
