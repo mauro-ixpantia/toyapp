@@ -1,65 +1,69 @@
 steps:
-  - name: 'My Build Step'
-    entrypoint: 'bash'
-    args:
-      - '-c'
-      - |
-        echo "Using GitHub token: $$GITHUB_TOKEN"
-        # Add your commands here that require the GITHUB_TOKEN,
-        # for example, interacting with GitHub APIs.
-        Rscript -e 'install.packages("pak")'
-        Rscript -e 'pak::pak("maurolepore/toyhiprivate")'
+  - name: 'gcr.io/cloud-builders/docker'
+    id: 'Build Docker image'
     secretEnv: ['GITHUB_TOKEN']
-availableSecrets:
-  secretManager:
-    - versionName: 'projects/783296411696/secrets/GITHUB_TOKEN/versions/1'
-      env: 'GITHUB_TOKEN'
-  - name: gcr.io/cloud-builders/docker
     args:
       - build
       - '--no-cache'
       - '-t'
-      - >-
-        $_AR_HOSTNAME/$_AR_PROJECT_ID/$_AR_REPOSITORY/$REPO_NAME/$_SERVICE_NAME:$COMMIT_SHA
-      - .
+      - $_AR_HOSTNAME/$_AR_PROJECT_ID/$_AR_REPOSITORY/$REPO_NAME/$_SERVICE_NAME:$COMMIT_SHA
+      - '--build-arg'
+      - 'GITHUB_TOKEN=$$GITHUB_TOKEN'
       - '-f'
       - Dockerfile
-    id: Build
+      - .
+
+  - name: 'My Build Step'
+    entrypoint: 'bash'
+    secretEnv: ['GITHUB_TOKEN']
+    args:
+      - '-c'
+      - |
+        echo "Using GitHub token: $$GITHUB_TOKEN"
+        Rscript -e 'install.packages("pak")'
+        Rscript -e 'pak::pak("maurolepore/toyhiprivate")'
+
   - name: gcr.io/cloud-builders/docker
+    id: 'Push Docker image'
     args:
       - push
-      - >-
-        $_AR_HOSTNAME/$_AR_PROJECT_ID/$_AR_REPOSITORY/$REPO_NAME/$_SERVICE_NAME:$COMMIT_SHA
-    id: Push
+      - $_AR_HOSTNAME/$_AR_PROJECT_ID/$_AR_REPOSITORY/$REPO_NAME/$_SERVICE_NAME:$COMMIT_SHA
+
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk:slim'
+    id: 'Deploy to Cloud Run'
+    entrypoint: gcloud
     args:
       - run
       - services
       - update
       - $_SERVICE_NAME
       - '--platform=managed'
-      - >-
-        --image=$_AR_HOSTNAME/$_AR_PROJECT_ID/$_AR_REPOSITORY/$REPO_NAME/$_SERVICE_NAME:$COMMIT_SHA
-      - >-
-        --labels=managed-by=gcp-cloud-build-deploy-cloud-run,commit-sha=$COMMIT_SHA,gcb-build-id=$BUILD_ID,gcb-trigger-id=$_TRIGGER_ID
+      - --image=$_AR_HOSTNAME/$_AR_PROJECT_ID/$_AR_REPOSITORY/$REPO_NAME/$_SERVICE_NAME:$COMMIT_SHA
+      - --labels=managed-by=gcp-cloud-build-deploy-cloud-run,commit-sha=$COMMIT_SHA,gcb-build-id=$BUILD_ID,gcb-trigger-id=$_TRIGGER_ID
       - '--region=$_DEPLOY_REGION'
       - '--quiet'
-    id: Deploy
-    entrypoint: gcloud
+
 images:
-  - >-
-    $_AR_HOSTNAME/$_AR_PROJECT_ID/$_AR_REPOSITORY/$REPO_NAME/$_SERVICE_NAME:$COMMIT_SHA
+  - $_AR_HOSTNAME/$_AR_PROJECT_ID/$_AR_REPOSITORY/$REPO_NAME/$_SERVICE_NAME:$COMMIT_SHA
+
+availableSecrets:
+  secretManager:
+    - versionName: 'projects/$PROJECT_ID/secrets/GITHUB_TOKEN/versions/latest'
+      env: 'GITHUB_TOKEN'
+
 options:
   substitutionOption: ALLOW_LOOSE
   logging: CLOUD_LOGGING_ONLY
+
 substitutions:
+  _SERVICE_NAME: toyapp
+  _DEPLOY_REGION: us-central1
+  _AR_HOSTNAME: us-central1-docker.pkg.dev
+  _TRIGGER_ID: 70d089b7-0d0e-4dd2-9938-5bd6c4a25aad
   _AR_REPOSITORY: cloud-run-source-deploy
   _AR_PROJECT_ID: focal-healer-453620-r6
   _PLATFORM: managed
-  _SERVICE_NAME: toyapp
-  _DEPLOY_REGION: us-central1
-  _TRIGGER_ID: 70d089b7-0d0e-4dd2-9938-5bd6c4a25aad
-  _AR_HOSTNAME: us-central1-docker.pkg.dev
+
 tags:
   - gcp-cloud-build-deploy-cloud-run
   - gcp-cloud-build-deploy-cloud-run-managed
