@@ -13,7 +13,7 @@ steps:
       - Dockerfile
       - .
 
-  - name: 'My Build Step'
+  - name: 'gcr.io/cloud-builders/git'
     entrypoint: 'bash'
     secretEnv: ['GITHUB_TOKEN']
     args:
