@@ -54,13 +54,13 @@ options:
   substitutionOption: ALLOW_LOOSE
   logging: CLOUD_LOGGING_ONLY
 substitutions:
-  _SERVICE_NAME: toyapp
-  _DEPLOY_REGION: us-central1
-  _AR_HOSTNAME: us-central1-docker.pkg.dev
-  _TRIGGER_ID: af1c1458-6f3e-4874-af57-f55eca7af246
   _AR_REPOSITORY: cloud-run-source-deploy
   _AR_PROJECT_ID: focal-healer-453620-r6
   _PLATFORM: managed
+  _SERVICE_NAME: toyapp
+  _DEPLOY_REGION: us-central1
+  _TRIGGER_ID: 70d089b7-0d0e-4dd2-9938-5bd6c4a25aad
+  _AR_HOSTNAME: us-central1-docker.pkg.dev
 tags:
   - gcp-cloud-build-deploy-cloud-run
   - gcp-cloud-build-deploy-cloud-run-managed
